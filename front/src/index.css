@@ -1,0 +1,25 @@
+/* Minimal baseline for full-width dark app */
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0e1420;           /* dark background */
+  color: #e7ecff;                 /* readable on dark */
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Make the app span the full viewport; no centering here */
+#root {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: initial !important;
+}
+/* Optional: nicer scrollbars on dark */
+* {
+  scrollbar-color: #3a4157 #0e1420;
+  scrollbar-width: thin;
+}

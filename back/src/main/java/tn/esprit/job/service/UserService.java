@@ -98,11 +98,9 @@ public class UserService {
         User existing = userRepository.findById(updatedUser.getUserId())
                 .orElseThrow(() -> new UserException("User not found"));
 
-        // Only updatable fields here (email typically not changed via profile, but keep if you want)
         existing.setFirstName(updatedUser.getFirstName());
         existing.setLastName(updatedUser.getLastName());
         if (updatedUser.getEmail() != null && !updatedUser.getEmail().equals(existing.getEmail())) {
-            // Ensure email uniqueness
             userRepository.findByEmail(updatedUser.getEmail()).ifPresent(u -> {
                 if (!u.getUserId().equals(existing.getUserId())) {
                     throw new UserException("Email already in use by another account");
@@ -110,9 +108,7 @@ public class UserService {
             });
             existing.setEmail(updatedUser.getEmail());
         }
-        // Role / enabled usually not part of self profile; keep as-is.
 
-        // If password provided, re-encode
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
             existing.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
@@ -123,7 +119,6 @@ public class UserService {
 
     /* ---------- CRUD (Admin / General) ---------- */
 
-    // Create (Admin-use or generic create)
     public User createUser(User toCreate) {
         if (toCreate.getEmail() == null || toCreate.getEmail().isBlank())
             throw new UserException("Email is required");
@@ -135,7 +130,6 @@ public class UserService {
         if (toCreate.getPassword() == null || toCreate.getPassword().isBlank())
             throw new UserException("Password is required");
 
-        // Default role if missing
         Role role = (toCreate.getRole() != null) ? toCreate.getRole() : Role.CLIENT;
 
         User newUser = User.builder()
@@ -149,12 +143,10 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
-    // Read by ID
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new UserException("User not found"));
     }
 
-    // Read by Email
     public User getUserByEmail(String email) {
         User u = userRepository.getUserByEmail(email);
         if (u == null) throw new UserException("User not found");

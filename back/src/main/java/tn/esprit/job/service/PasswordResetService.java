@@ -29,7 +29,6 @@ public class PasswordResetService {
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendBaseUrl;
 
-    // 15-minute code validity
     private static final int EXPIRATION_MINUTES = 15;
 
     public void requestReset(ForgotPasswordRequest req) throws UserException {
@@ -46,8 +45,8 @@ public class PasswordResetService {
         try {
             mailService.sendEmail(
                     user.getEmail(),
-                    user.getEmail(),              // or user.getFirstName() if available
-                    "forgot-password",            // Thymeleaf template name (forgot-password.html)
+                    user.getEmail(),
+                    "forgot-password",
                     link,
                     code
             );
@@ -63,7 +62,7 @@ public class PasswordResetService {
         if (user.getResetCodeExpiresAt() == null || Instant.now().isAfter(user.getResetCodeExpiresAt())) {
             throw new UserException("Code expired, please request a new one");
         }
-        return true; // still valid
+        return true;
     }
 
     @Transactional
@@ -80,7 +79,6 @@ public class PasswordResetService {
         }
 
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
-        // clear code after successful reset
         user.setResetCode(null);
         user.setResetCodeExpiresAt(null);
         userRepository.save(user);

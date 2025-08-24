@@ -98,10 +98,8 @@ public class QuestionServiceImpl implements QuestionService {
         questionRepository.attachToFormulaire(formulaire, targetIds);
     }
 
-    // ---- Option 2: use only JPQL with ORDER BY id_Q ----
     @Override
     public Page<Question> search(String type, String q, int page, int size) {
-        // Important: do NOT pass a Sort here; ORDER BY is in JPQL
         Pageable pageOnly = PageRequest.of(page, size);
 
         boolean hasType = (type != null && !type.isBlank());

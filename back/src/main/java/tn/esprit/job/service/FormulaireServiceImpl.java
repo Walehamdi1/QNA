@@ -51,7 +51,6 @@ public class FormulaireServiceImpl implements FormulaireService {
 
         existing.setTitre(updatedFormulaire.getTitre());
 
-        // Optional: allow updating the user if a new userId is provided
         if (updatedFormulaire.getUser() != null && updatedFormulaire.getUser().getUserId() != null) {
             Long newUserId = updatedFormulaire.getUser().getUserId();
             User user = userRepository.findById(newUserId)

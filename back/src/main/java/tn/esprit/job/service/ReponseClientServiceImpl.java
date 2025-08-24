@@ -29,14 +29,12 @@ public class ReponseClientServiceImpl implements ReponseClientService {
     public ReponseClient create(ReponseClient reponseClient) {
         reponseClient.setDateSoumission(new Date());
 
-        // Validate & attach Question
         if (reponseClient.getQuestion() != null && reponseClient.getQuestion().getId_Q() != null) {
             Question question = questionRepository.findById(reponseClient.getQuestion().getId_Q())
                     .orElseThrow(() -> new RuntimeException("Question not found with ID: " + reponseClient.getQuestion().getId_Q()));
             reponseClient.setQuestion(question);
         }
 
-        // Validate & attach User
         if (reponseClient.getUser() != null && reponseClient.getUser().getUserId() != null) {
             User user = userRepository.findById(reponseClient.getUser().getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found with ID: " + reponseClient.getUser().getUserId()));
@@ -89,13 +87,11 @@ public class ReponseClientServiceImpl implements ReponseClientService {
         Date now = new Date();
 
         return payload.getAnswers().stream().map(a -> {
-            // validate question belongs to the formulaire
             if (a.getQuestionId() == null ||
                     !questionRepository.existsByIdInFormulaire(a.getQuestionId(), formulaireId)) {
                 throw new IllegalArgumentException("Question " + a.getQuestionId() + " not in formulaire " + formulaireId);
             }
 
-            // upsert per (user, question)
             ReponseClient rc = repository
                     .findByUserIdAndQuestionId(currentUser.getUserId(), a.getQuestionId())
                     .orElseGet(() -> {

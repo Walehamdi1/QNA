@@ -26,7 +26,6 @@ public class ReponseFournisseurServiceImpl implements ReponseFournisseurService 
     public ReponseFournisseur create(ReponseFournisseur reponse) {
         reponse.setDateReponse(new Date());
 
-        // Safety check (optional but recommended)
         if (reponse.getReponseClient() != null && reponse.getReponseClient().getId_RClient() != null) {
             ReponseClient client = reponseClientRepository.findById(reponse.getReponseClient().getId_RClient())
                     .orElseThrow(() -> new RuntimeException("ReponseClient not found"));
@@ -80,7 +79,6 @@ public class ReponseFournisseurServiceImpl implements ReponseFournisseurService 
             var q = rc.getQuestion();
             var client = rc.getUser();
 
-            // find existing response by THIS fournisseur (if any)
             var rfOpt = repository.findByReponseClientIdAndUserId(
                     rc.getId_RClient(), currentFournisseur.getUserId()
             );

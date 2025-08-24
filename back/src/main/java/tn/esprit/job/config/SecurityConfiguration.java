@@ -28,7 +28,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecurityConfiguration implements WebMvcConfigurer {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private CorsConfiguration corsConfiguration;
 
 
 
@@ -38,7 +37,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
         config.setAllowCredentials(true);
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-        config.setAllowedOriginPatterns(Collections.singletonList("*")); // Use allowedOriginPatterns instead of allowedOrigins
+        config.setAllowedOriginPatterns(Collections.singletonList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

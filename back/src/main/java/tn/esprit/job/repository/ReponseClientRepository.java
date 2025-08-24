@@ -17,7 +17,6 @@ public interface ReponseClientRepository extends JpaRepository<ReponseClient, Lo
     Optional<ReponseClient> findByUserIdAndQuestionId(@Param("userId") Long userId,
                                                       @Param("questionId") Long questionId);
 
-    // replaces: findAllByUser_UserIdAndQuestion_Formulaire_Id_F(Long userId, Long formulaireId)
     @Query("""
            select rc from ReponseClient rc
            where rc.user.userId = :userId

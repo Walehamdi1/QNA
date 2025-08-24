@@ -47,7 +47,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
                                         @Param("term") String term,
                                         Pageable pageable);
 
-    // -------- REPLACEMENTS for underscored IDs (avoid derived parsing) --------
     @Query("select q from Question q where q.formulaire.id_F = :formulaireId")
     List<Question> findByFormulaireId(@Param("formulaireId") Long formulaireId);
 

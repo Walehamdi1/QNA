@@ -63,9 +63,6 @@ public class AuthenticationController {
     }
 
     /* ---------- CRUD ---------- */
-    // NOTE: Kept existing endpoints, but added non-conflicting RESTful routes.
-
-    // List all users (existing + better route)
     @GetMapping("/getAllUsers") // existing
     public ResponseEntity<?> getAllUsersLegacy() {
         try {
@@ -82,7 +79,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    // Create user (admin or internal create)
     @PostMapping // RESTful: POST /user
     public ResponseEntity<?> createUser(@RequestBody User toCreate) {
         try {
@@ -95,7 +91,6 @@ public class AuthenticationController {
         }
     }
 
-    // Get user by ID
     @GetMapping("/by-id/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         try {
@@ -107,7 +102,6 @@ public class AuthenticationController {
         }
     }
 
-    // Get user by Email (moved to non-conflicting path)
     @GetMapping("/by-email/{email}")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         try {
@@ -119,7 +113,6 @@ public class AuthenticationController {
         }
     }
 
-    // Update user by ID
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User payload) {
         try {
@@ -131,7 +124,6 @@ public class AuthenticationController {
         }
     }
 
-    // Delete user by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {

@@ -69,8 +69,6 @@ public class FormulaireController {
     }
 
     // -------- Client submissions (no auth → userId in body or query) --------
-
-    /** Submit or update answers for a formulaire by a specific user. */
     @PostMapping("/{formulaireId}/submit")
     public ResponseEntity<List<ReponseClientDTO>> submit(
             @PathVariable Long formulaireId,
@@ -82,7 +80,6 @@ public class FormulaireController {
         );
     }
 
-    /** Get a user's saved answers for a formulaire: /api/formulaires/{id}/responses?userId=123 */
     @GetMapping("/{formulaireId}/responses/me")
     public ResponseEntity<List<ReponseClientDTO>> myResponsesForFormulaire(
             @PathVariable Long formulaireId,

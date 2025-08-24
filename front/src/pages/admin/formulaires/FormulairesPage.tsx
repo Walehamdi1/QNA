@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
   IconButton, Paper, Table, TableBody, TableCell, TableContainer,
@@ -37,7 +37,7 @@ export default function FormulairesPage() {
   const size = 10;
   const [qTotalPages, setQTotalPages] = useState(0);
   const [qItems, setQItems] = useState<Question[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set()); // checked questions (final selection)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const toArray = (data: any): any[] => {
     if (Array.isArray(data)) return data;
@@ -67,6 +67,12 @@ export default function FormulairesPage() {
   };
 
   const startEdit = async (row: any) => {
+    // row.id comes from your DTO (/api/formulaires -> FormulaireListDTO.id)
+    if (!row?.id) {
+      console.error("Missing row.id");
+      return;
+    }
+
     setEdit(row);
     setForm({ titre: row.titre, userId: row?.user?.userId ?? "" });
     setOpen(true);
@@ -79,7 +85,7 @@ export default function FormulairesPage() {
 
     // fetch existing selections for this formulaire
     try {
-      const current = await FormulaireService.getQuestions(row.id_F);
+      const current = await FormulaireService.getQuestions(row.id);
       const ids = Array.isArray(current)
         ? current.map((q: any) => (q?.id_Q ?? q)) // allow array of ids or array of objects
         : [];
@@ -101,10 +107,14 @@ export default function FormulairesPage() {
   const save = async () => {
     try {
       if (edit) {
-        // 1) update the title
-        await FormulaireService.update(edit.id_F, { ...edit, titre: form.titre });
-        // 2) push selection (replace membership)
-        await FormulaireService.setQuestions(edit.id_F, Array.from(selectedIds));
+        if (!edit.id) {
+          alert("Missing formulaire id.");
+          return;
+        }
+        // 1) update the title (and keep owner stable)
+        await FormulaireService.update(edit.id, { titre: form.titre, user: edit.user });
+        // 2) replace membership
+        await FormulaireService.setQuestions(edit.id, Array.from(selectedIds));
       } else {
         if (!form.userId) return alert("User ID is required for creation.");
         await FormulaireService.create(Number(form.userId), { titre: form.titre });
@@ -118,6 +128,7 @@ export default function FormulairesPage() {
   };
 
   const onDelete = async (id: number) => {
+    if (!id && id !== 0) return;
     if (!confirm("Delete this formulaire?")) return;
     try { await FormulaireService.remove(id); fetchData(); }
     catch (e) { console.error(e); alert("Delete failed."); }
@@ -137,7 +148,6 @@ export default function FormulairesPage() {
       });
       const items: Question[] = toArray(data);
       setQItems(items);
-      // support both Page and array fallback
       if (typeof data?.totalPages === "number") setQTotalPages(data.totalPages);
       else setQTotalPages(1);
     } catch (e) {
@@ -168,7 +178,6 @@ export default function FormulairesPage() {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Center the content area */}
       <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 1, md: 2 } }}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
           <Typography variant="h5" sx={{ flex: 1 }}>Formulaire</Typography>
@@ -197,14 +206,14 @@ export default function FormulairesPage() {
               )}
 
               {!loading && dataRows.map((r) => (
-                <TableRow key={r.id_F} hover sx={{ "& td": { py: 1.25 } }}>
-                  <TableCell>{r.id_F}</TableCell>
+                <TableRow key={r.id} hover sx={{ "& td": { py: 1.25 } }}>
+                  <TableCell>{r.id}</TableCell>
                   <TableCell>{r.titre}</TableCell>
-                  <TableCell>{r.user?.email ?? "-"}</TableCell>
+                  <TableCell>{r.ownerEmail ?? "-"}</TableCell>
                   <TableCell>{r.dateCreation ? new Date(r.dateCreation).toLocaleString() : "-"}</TableCell>
                   <TableCell align="right">
                     <IconButton size="small" onClick={() => startEdit(r)}><EditIcon fontSize="small" /></IconButton>
-                    <IconButton size="small" color="error" onClick={() => onDelete(r.id_F)}><DeleteIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" color="error" onClick={() => onDelete(r.id)}><DeleteIcon fontSize="small" /></IconButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -289,11 +298,7 @@ export default function FormulairesPage() {
                       const id = q.id_Q;
                       const checked = selectedIds.has(id);
                       return (
-                        <ListItem
-                          key={id}
-                          disablePadding
-                          secondaryAction={null}
-                        >
+                        <ListItem key={id} disablePadding secondaryAction={null}>
                           <ListItemButton onClick={() => toggleChecked(id)} dense>
                             <ListItemIcon>
                               <Checkbox edge="start" checked={checked} tabIndex={-1} disableRipple />

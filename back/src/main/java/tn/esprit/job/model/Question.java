@@ -25,5 +25,6 @@ public class Question {
     private Formulaire formulaire;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<ReponseClient> reponseClients;
 }

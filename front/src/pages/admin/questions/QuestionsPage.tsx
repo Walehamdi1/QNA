@@ -11,41 +11,100 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import { QuestionService } from "../../../services/QuestionService";
 import { FormulaireService } from "../../../services/FormulaireService";
 
+type Question = {
+  id_Q: number;
+  contenu: string;
+  type?: string;
+  // On questions, backend still sends entity-style formulaire { id_F, titre? }
+  formulaire?: { id_F: number; titre?: string } | null;
+};
+
+type FormulaireListItem = {
+  id: number;           // DTO id from /api/formulaires
+  titre: string;
+};
+
 export default function QuestionsPage() {
-  const [rows, setRows] = useState<any[]>([]);
-  const [formulaires, setFormulaires] = useState<any[]>([]);
+  const [rows, setRows] = useState<Question[]>([]);
+  const [formulaires, setFormulaires] = useState<FormulaireListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [edit, setEdit] = useState<any | null>(null);
-  const [form, setForm] = useState<any>({ contenu: "", type: "", formulaireId: "" });
+  const [edit, setEdit] = useState<Question | null>(null);
+
+  // Keep UI values as strings (never undefined); convert to number only when sending payload
+  const [form, setForm] = useState<{ contenu: string; type: string; formulaireId: string }>({
+    contenu: "",
+    type: "",
+    formulaireId: "",
+  });
+
+  const toArray = (data: any): any[] => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.content)) return data.content;
+    return [];
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [qs, fs] = await Promise.all([QuestionService.list(), FormulaireService.list()]);
-      setRows(Array.isArray(qs) ? qs : []);
-      setFormulaires(Array.isArray(fs) ? fs : []);
+      setRows(Array.isArray(qs) ? qs : toArray(qs));
+
+      // Normalize formulaires list to always have { id, titre }
+      const fsArr = toArray(fs).map((f: any) => ({
+        id: f?.id ?? f?.id_F,   // prefer DTO id; fallback to id_F if ever present
+        titre: f?.titre ?? "",
+      })).filter((f: any) => f?.id != null);
+      setFormulaires(fsArr);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => { fetchData(); }, []);
 
-  const startCreate = () => { setEdit(null); setForm({ contenu: "", type: "", formulaireId: "" }); setOpen(true); };
-  const startEdit = (row: any) => { setEdit(row); setForm({ contenu: row.contenu, type: row.type, formulaireId: row.formulaire?.id_F ?? "" }); setOpen(true); };
+  const startCreate = () => {
+    setEdit(null);
+    setForm({ contenu: "", type: "", formulaireId: "" });
+    setOpen(true);
+  };
+
+  const startEdit = (row: Question) => {
+    setEdit(row);
+    setForm({
+      contenu: row.contenu ?? "",
+      type: row.type ?? "",
+      // question.formulaire uses entity id_F → convert to string for the Select
+      formulaireId: row.formulaire?.id_F != null ? String(row.formulaire.id_F) : "",
+    });
+    setOpen(true);
+  };
+
   const close = () => setOpen(false);
 
   const save = async () => {
-    const payload: any = { contenu: form.contenu, type: form.type };
+    const payload: any = {
+      contenu: form.contenu ?? "",
+      type: form.type ?? "",
+    };
+
     if (!edit) {
-      if (!form.formulaireId) return alert("Formulaire is required.");
-      payload.formulaire = { id_F: Number(form.formulaireId) };
+      if (!form.formulaireId) {
+        alert("Formulaire is required.");
+        return;
+      }
+      payload.formulaire = { id_F: Number(form.formulaireId) }; // convert string → number for backend
       await QuestionService.create(payload);
     } else {
-      if (form.formulaireId) payload.formulaire = { id_F: Number(form.formulaireId) };
+      if (form.formulaireId) {
+        payload.formulaire = { id_F: Number(form.formulaireId) };
+      }
       await QuestionService.update(edit.id_Q, payload);
     }
-    close(); fetchData();
+
+    close();
+    fetchData();
   };
 
   const onDelete = async (id: number) => {
@@ -56,11 +115,12 @@ export default function QuestionsPage() {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Center the content area */}
       <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 1, md: 2 } }}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <Typography variant="h5" sx={{ flex: 1 }}>Questions</Typography>
-          <Tooltip title="Refresh"><IconButton onClick={fetchData}><RefreshIcon /></IconButton></Tooltip>
+          <Tooltip title="Refresh">
+            <IconButton onClick={fetchData} disabled={loading}><RefreshIcon /></IconButton>
+          </Tooltip>
           <Button startIcon={<AddIcon />} variant="contained" onClick={startCreate} sx={{ ml: 1 }}>
             New
           </Button>
@@ -83,7 +143,9 @@ export default function QuestionsPage() {
                   <TableCell>{r.id_Q}</TableCell>
                   <TableCell>{r.contenu}</TableCell>
                   <TableCell>{r.type}</TableCell>
-                  <TableCell>{r.formulaire?.titre ?? `#${r.formulaire?.id_F ?? "-"}`}</TableCell>
+                  <TableCell>
+                    {r.formulaire?.titre ?? (r.formulaire?.id_F != null ? `#${r.formulaire.id_F}` : "-")}
+                  </TableCell>
                   <TableCell align="right">
                     <IconButton size="small" onClick={() => startEdit(r)}><EditIcon fontSize="small" /></IconButton>
                     <IconButton size="small" color="error" onClick={() => onDelete(r.id_Q)}><DeleteIcon fontSize="small" /></IconButton>
@@ -92,7 +154,9 @@ export default function QuestionsPage() {
               ))}
               {!rows.length && !loading && (
                 <TableRow>
-                  <TableCell colSpan={5}><Typography sx={{ opacity: 0.7 }}>No items.</Typography></TableCell>
+                  <TableCell colSpan={5}>
+                    <Typography sx={{ opacity: 0.7 }}>No items.</Typography>
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -104,14 +168,30 @@ export default function QuestionsPage() {
         <DialogTitle>{edit ? "Edit question" : "New question"}</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1, display: "grid", gap: 2 }}>
-            <TextField fullWidth label="Contenu" value={form.contenu} onChange={(e) => setForm({ ...form, contenu: e.target.value })}/>
-            <TextField fullWidth label="Type"    value={form.type}    onChange={(e) => setForm({ ...form, type: e.target.value })}/>
             <TextField
-              fullWidth select label="Formulaire" value={form.formulaireId}
+              fullWidth
+              label="Contenu"
+              value={form.contenu ?? ""} // never undefined
+              onChange={(e) => setForm({ ...form, contenu: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Type"
+              value={form.type ?? ""} // never undefined
+              onChange={(e) => setForm({ ...form, type: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              select
+              label="Formulaire"
+              value={form.formulaireId ?? ""}  // keep controlled (never undefined)
               onChange={(e) => setForm({ ...form, formulaireId: e.target.value })}
             >
               {formulaires.map((f) => (
-                <MenuItem key={f.id_F} value={f.id_F}>#{f.id_F} — {f.titre}</MenuItem>
+                // Use DTO id from /api/formulaires
+                <MenuItem key={f.id} value={String(f.id)}>
+                  #{f.id} — {f.titre}
+                </MenuItem>
               ))}
             </TextField>
           </Box>

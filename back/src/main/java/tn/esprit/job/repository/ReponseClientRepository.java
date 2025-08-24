@@ -25,4 +25,10 @@ public interface ReponseClientRepository extends JpaRepository<ReponseClient, Lo
            """)
     List<ReponseClient> findAllByUserIdAndFormulaireId(@Param("userId") Long userId,
                                                        @Param("formulaireId") Long formulaireId);
+
+    @Query("""
+           select rc from ReponseClient rc
+           where rc.question.formulaire.id_F = :formulaireId
+           """)
+    List<ReponseClient> findAllByFormulaireId(@Param("formulaireId") Long formulaireId);
 }

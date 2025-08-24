@@ -69,3 +69,19 @@ export type ReponseClientDTO = {
 export type SubmissionDTO = {
   answers: { questionId: number; valeur: string }[];
 };
+export type ClientAnswerView = {
+  reponseClientId: number;
+  questionId: number | null;
+  questionLabel: string | null;
+  questionType: string | null;
+
+  clientUserId: number | null;
+  clientEmail: string | null;
+
+  clientAnswer: string | null;
+  submittedAt: string | null;
+
+  fournisseurResponseId: number | null;
+  fournisseurComment: string | null;
+  fournisseurRespondedAt: string | null;
+};

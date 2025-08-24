@@ -11,6 +11,12 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_rf_user_reponseclient",
+                columnNames = {"user_id", "reponse_client_id"}
+        )
+)
 public class ReponseFournisseur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

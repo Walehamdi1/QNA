@@ -23,4 +23,5 @@ export const FormulaireService = {
     (await api.post(`/api/formulaires/${formulaireId}/submit`, payload)).data as ReponseClientDTO[],
   myResponses: async (formulaireId: number) =>
     (await api.get(`/api/formulaires/${formulaireId}/responses/me`)).data as ReponseClientDTO[],
+  
 };

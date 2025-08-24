@@ -13,12 +13,4 @@ public class PasswordEncoder {
         return new BCryptPasswordEncoder();
     }
 
-    public String encode(String encodedPassword) {
-        byte[] decodedBytes = Base64.getEncoder().encode(encodedPassword.getBytes());
-        return new String(decodedBytes);
-    }
-    public static String decodePassword(String encodedPassword) {
-        byte[] decodedBytes = Base64.getDecoder().decode(encodedPassword);
-        return new String(decodedBytes);
-    }
 }

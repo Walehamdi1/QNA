@@ -1,9 +1,11 @@
 package tn.esprit.job.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import tn.esprit.job.config.PasswordEncoder;
 import tn.esprit.job.dto.*;
@@ -21,7 +23,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     /* ---------- Registration / Auth ---------- */
 
@@ -42,7 +45,7 @@ public class UserService {
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
-                .password(passwordEncoder.bCryptPasswordEncoder().encode(request.getPassword()))
+                .password(passwordEncoder.encode(request.getPassword()))
                 .role(assignedRole)
                 .enabled(true)
                 .build();
@@ -111,7 +114,7 @@ public class UserService {
 
         // If password provided, re-encode
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
-            existing.setPassword(passwordEncoder.bCryptPasswordEncoder().encode(updatedUser.getPassword()));
+            existing.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
         User saved = userRepository.save(existing);
@@ -139,7 +142,7 @@ public class UserService {
                 .firstName(toCreate.getFirstName())
                 .lastName(toCreate.getLastName())
                 .email(toCreate.getEmail())
-                .password(passwordEncoder.bCryptPasswordEncoder().encode(toCreate.getPassword()))
+                .password(passwordEncoder.encode(toCreate.getPassword()))
                 .role(role)
                 .build();
 
@@ -175,7 +178,7 @@ public class UserService {
         }
 
         if (patch.getPassword() != null && !patch.getPassword().isBlank()) {
-            existing.setPassword(passwordEncoder.bCryptPasswordEncoder().encode(patch.getPassword()));
+            existing.setPassword(passwordEncoder.encode(patch.getPassword()));
         }
 
         if (patch.getRole() != null) existing.setRole(patch.getRole());

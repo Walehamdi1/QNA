@@ -13,13 +13,17 @@ import UsersPage from "./pages/admin/users/UsersPage";
 import FormulairesPage from "./pages/admin/formulaires/FormulairesPage";
 import QuestionsPage from "./pages/admin/questions/QuestionsPage";
 
-// Client layout + pages (new nested layout)
+// Client layout + pages
 import ClientLayout from "./layouts/ClientLayout";
 import ClientOverview from "./pages/client/ClientOverview";
 import FormulairesClientPage from "./pages/client/FormulairesClientPage";
 
-// Other dashboards (keep fournisseur single-page for now)
-import FournisseurDashboard from "./pages/FournisseurDashboard";
+// Fournisseur layout + pages (NEW)
+import FournisseurLayout from "./layouts/FournisseurLayout";
+import FournisseurOverview from "./pages/fournisseur/FournisseurOverview";
+import FormulairesFournisseurPage from "./pages/fournisseur/FormulairesFournisseurPage";
+
+// Generic dashboard (fallback)
 import Dashboard from "./pages/Dashboard";
 
 export default function App() {
@@ -58,19 +62,21 @@ export default function App() {
       >
         <Route index element={<ClientOverview />} />
         <Route path="formulaires" element={<FormulairesClientPage />} />
-        {/* Optional extra routes for client can go here, e.g.: 
-            <Route path="help" element={<ClientHelp />} /> */}
+        {/* Add more client routes here if needed */}
       </Route>
 
-      {/* FOURNISSEUR single-page dashboard (unchanged) */}
+      {/* FOURNISSEUR area (left nav + nested pages) */}
       <Route
         path="/dashboard/fournisseur"
         element={
           <ProtectedRoute roles={["FOURNISSEUR"]}>
-            <FournisseurDashboard />
+            <FournisseurLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<FournisseurOverview />} />
+        <Route path="formulaires" element={<FormulairesFournisseurPage />} />
+      </Route>
 
       {/* Generic fallback for authenticated users without a specific dashboard */}
       <Route
